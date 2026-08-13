@@ -4,16 +4,39 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider } from "wagmi";
 import { RainbowKitProvider, getDefaultConfig } from "@rainbow-me/rainbowkit";
 import "@rainbow-me/rainbowkit/styles.css";
-import { http } from "viem";
+import { http, defineChain } from "viem";
 
 const queryClient = new QueryClient();
 
-// 나중에 체인 정보 수정할 예정
+// Robinhood Chain Testnet
+const robinhoodTestnet = defineChain({
+  id: 46630,
+  name: "Robinhood Chain Testnet",
+  nativeCurrency: {
+    name: "ETH",
+    symbol: "ETH",
+    decimals: 18,
+  },
+  rpcUrls: {
+    default: {
+      http: ["https://rpc.testnet.chain.robinhood.com"],
+    },
+  },
+  blockExplorers: {
+    default: {
+      name: "Explorer",
+      url: "https://explorer.testnet.chain.robinhood.com",
+    },
+  },
+});
+
 const config = getDefaultConfig({
   appName: "RHGods Mint",
-  projectId: "YOUR_WALLETCONNECT_PROJECT_ID", // 나중에 바꿀 예정
-  chains: [], // 나중에 추가
-  transports: {},
+  projectId: "a0021f496996324b94a19b2cc05b9814",
+  chains: [robinhoodTestnet],
+  transports: {
+    [robinhoodTestnet.id]: http(),
+  },
   ssr: true,
 });
 
