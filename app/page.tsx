@@ -3,11 +3,14 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0xF5e93664D61606b247BDf43449ee2CEcF5a94B11";
-const CORRECT_CHAIN_ID = BigInt(46630); // Robinhood Chain Testnet
+const CONTRACT_ADDRESS = "0xdF1122f3dC6BA4cc541A0b3EE3345dba7f227cB5";
+const CORRECT_CHAIN_ID = BigInt(46630);
+const MAX_SUPPLY = 3333;
 
 const ABI = [
   "function mint(uint256 quantity) payable",
+  "function totalMinted() view returns (uint256)",
+  "function tokenURI(uint256 tokenId) view returns (string)",
 ];
 
 export default function Home() {
@@ -16,6 +19,8 @@ export default function Home() {
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
   const [wrongNetwork, setWrongNetwork] = useState(false);
+  const [minted, setMinted] = useState(0);
+  const [mintedImages, setMintedImages] = useState<string[]>([]);
 
   const checkNetwork = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) return;
@@ -28,8 +33,20 @@ export default function Home() {
     }
   };
 
+  const fetchMinted = async () => {
+    try {
+      const provider = new BrowserProvider((window as any).ethereum);
+      const contract = new Contract(CONTRACT_ADDRESS, ABI, provider);
+      const total = await contract.totalMinted();
+      setMinted(Number(total));
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     checkNetwork();
+    fetchMinted();
     if ((window as any).ethereum) {
       (window as any).ethereum.on("chainChanged", () => {
         window.location.reload();
@@ -39,7 +56,7 @@ export default function Home() {
 
   const connectWallet = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
-      alert("지갑을 설치해주세요 (MetaMask 또는 Coinbase Wallet)");
+      alert("지갑을 설치해주세요");
       return;
     }
 
@@ -48,6 +65,7 @@ export default function Home() {
       const accounts = await provider.send("eth_requestAccounts", []);
       setAccount(accounts[0]);
       await checkNetwork();
+      await fetchMinted();
       setStatus("Wallet connected");
     } catch (err: any) {
       setStatus("Connection failed: " + err.message);
@@ -59,11 +77,14 @@ export default function Home() {
 
     setLoading(true);
     setStatus("Minting...");
+    setMintedImages([]);
 
     try {
       const provider = new BrowserProvider((window as any).ethereum);
       const signer = await provider.getSigner();
       const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      const before = Number(await contract.totalMinted());
 
       const tx = await contract.mint(quantity, {
         value: parseEther((0.0005 * quantity).toFixed(4)),
@@ -71,7 +92,23 @@ export default function Home() {
 
       setStatus("Transaction sent... waiting for confirmation");
       await tx.wait();
+
+      const after = Number(await contract.totalMinted());
+      setMinted(after);
       setStatus("Mint Successful!");
+
+      // 민트된 토큰 이미지 불러오기
+      const images: string[] = [];
+      for (let id = before + 1; id <= after; id++) {
+        try {
+          const uri = await contract.tokenURI(id);
+          const json = JSON.parse(atob(uri.split(",")[1]));
+          images.push(json.image);
+        } catch (e) {
+          console.error(e);
+        }
+      }
+      setMintedImages(images);
     } catch (err: any) {
       setStatus("Error: " + (err.reason || err.message).slice(0, 100));
     } finally {
@@ -80,9 +117,12 @@ export default function Home() {
   };
 
   return (
-    <main style={{ textAlign: "center", padding: "40px 20px", maxWidth: "480px", margin: "0 auto" }}>
+    <main style={{ textAlign: "center", padding: "40px 20px", maxWidth: "520px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>RHGods</h1>
-      <p style={{ color: "#888", marginBottom: "40px" }}>Fully On-Chain on Robinhood Chain</p>
+      <p style={{ color: "#888", marginBottom: "12px" }}>Fully On-Chain on Robinhood Chain</p>
+      <p style={{ color: "#aaa", marginBottom: "30px", fontSize: "14px" }}>
+        {minted} / {MAX_SUPPLY} minted
+      </p>
 
       {wrongNetwork && (
         <div style={{ 
@@ -163,8 +203,13 @@ export default function Home() {
               {status}
             </p>
           )}
-        </div>
-      )}
-    </main>
-  );
-}
+
+          {mintedImages.length > 0 && (
+            <div style={{ marginTop: "30px" }}>
+              <p style={{ marginBottom: "12px", color: "#aaa" }}>Your new RHGods:</p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
+                {mintedImages.map((img, i) => (
+                  <img 
+                    key={i} 
+                    src={img} 
+                    alt={`RHGod ${i}
