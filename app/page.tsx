@@ -1,51 +1,59 @@
 "use client";
 
-import { useAccount, useConnect, useDisconnect, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { parseEther } from "viem";
 import { useState, useEffect } from "react";
+import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`;
+const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // 나중에 실제 주소로 변경
 
 const ABI = [
-  {
-    name: "mint",
-    type: "function",
-    stateMutability: "payable",
-    inputs: [{ name: "quantity", type: "uint256" }],
-    outputs: [],
-  },
-] as const;
+  "function mint(uint256 quantity) payable",
+];
 
 export default function Home() {
-  const { address, isConnected } = useAccount();
-  const { connect, connectors } = useConnect();
-  const { disconnect } = useDisconnect();
+  const [account, setAccount] = useState<string | null>(null);
   const [quantity, setQuantity] = useState(1);
-  const [hasWallet, setHasWallet] = useState(false);
+  const [status, setStatus] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    setHasWallet(typeof window !== "undefined" && !!(window as any).ethereum);
-  }, []);
+  const connectWallet = async () => {
+    if (typeof window === "undefined" || !(window as any).ethereum) {
+      alert("지갑을 설치해주세요 (MetaMask 또는 Coinbase Wallet)");
+      return;
+    }
 
-  const { writeContract, data: hash, isPending, error } = useWriteContract();
-  const { isLoading: isConfirming, isSuccess } = useWaitForTransactionReceipt({ hash });
-
-  const handleConnect = () => {
-    if (connectors && connectors.length > 0) {
-      connect({ connector: connectors[0] });
-    } else {
-      alert("No wallet found. Please install MetaMask or Coinbase Wallet.");
+    try {
+      const provider = new BrowserProvider((window as any).ethereum);
+      const accounts = await provider.send("eth_requestAccounts", []);
+      setAccount(accounts[0]);
+      setStatus("Wallet connected");
+    } catch (err: any) {
+      setStatus("Connection failed: " + err.message);
     }
   };
 
-  const handleMint = () => {
-    writeContract({
-      address: CONTRACT_ADDRESS,
-      abi: ABI,
-      functionName: "mint",
-      args: [BigInt(quantity)],
-      value: parseEther((0.0005 * quantity).toString()),
-    });
+  const handleMint = async () => {
+    if (!account) return;
+
+    setLoading(true);
+    setStatus("Minting...");
+
+    try {
+      const provider = new BrowserProvider((window as any).ethereum);
+      const signer = await provider.getSigner();
+      const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
+
+      const tx = await contract.mint(quantity, {
+        value: parseEther((0.0005 * quantity).toString()),
+      });
+
+      setStatus("Transaction sent... waiting for confirmation");
+      await tx.wait();
+      setStatus("Mint Successful!");
+    } catch (err: any) {
+      setStatus("Error: " + (err.reason || err.message).slice(0, 100));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -53,9 +61,9 @@ export default function Home() {
       <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>RHGods</h1>
       <p style={{ color: "#888", marginBottom: "40px" }}>Fully On-Chain on Robinhood Chain</p>
 
-      {!isConnected ? (
+      {!account ? (
         <button
-          onClick={handleConnect}
+          onClick={connectWallet}
           style={{
             background: "#E3E5E4",
             color: "#000",
@@ -72,7 +80,7 @@ export default function Home() {
       ) : (
         <div>
           <p style={{ marginBottom: "20px", fontSize: "14px", color: "#aaa" }}>
-            {address?.slice(0, 6)}...{address?.slice(-4)}
+            {account.slice(0, 6)}...{account.slice(-4)}
           </p>
 
           <div style={{ marginBottom: "24px" }}>
@@ -97,49 +105,26 @@ export default function Home() {
 
           <button
             onClick={handleMint}
-            disabled={isPending || isConfirming}
+            disabled={loading}
             style={{
-              background: isPending || isConfirming ? "#555" : "#E3E5E4",
+              background: loading ? "#555" : "#E3E5E4",
               color: "#000",
               padding: "14px 28px",
               fontSize: "16px",
               borderRadius: "8px",
               border: "none",
-              cursor: isPending || isConfirming ? "not-allowed" : "pointer",
+              cursor: loading ? "not-allowed" : "pointer",
               fontWeight: "600",
               width: "100%",
               maxWidth: "280px",
             }}
           >
-            {isPending || isConfirming
-              ? "Minting..."
-              : `Mint ${quantity} for ${(0.0005 * quantity).toFixed(4)} ETH`}
+            {loading ? "Minting..." : `Mint ${quantity} for ${(0.0005 * quantity).toFixed(4)} ETH`}
           </button>
 
-          <button
-            onClick={() => disconnect()}
-            style={{
-              marginTop: "16px",
-              background: "transparent",
-              color: "#888",
-              border: "1px solid #333",
-              padding: "10px 20px",
-              borderRadius: "8px",
-              cursor: "pointer",
-            }}
-          >
-            Disconnect
-          </button>
-
-          {isSuccess && (
-            <p style={{ marginTop: "24px", color: "#4ade80" }}>
-              Mint Successful!
-            </p>
-          )}
-
-          {error && (
-            <p style={{ marginTop: "24px", color: "#f87171", fontSize: "14px" }}>
-              {error.message.slice(0, 120)}
+          {status && (
+            <p style={{ marginTop: "24px", color: status.includes("Successful") ? "#4ade80" : "#aaa" }}>
+              {status}
             </p>
           )}
         </div>
