@@ -1,11 +1,9 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { injected } from "wagmi/connectors";
 import { parseEther } from "viem";
 import { useState } from "react";
 
-// 나중에 Testnet에 배포한 컨트랙트 주소로 바꿀 예정
 const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000" as `0x${string}`;
 
 const ABI = [
@@ -20,7 +18,7 @@ const ABI = [
 
 export default function Home() {
   const { address, isConnected } = useAccount();
-  const { connect } = useConnect();
+  const { connect, connectors } = useConnect();
   const { disconnect } = useDisconnect();
   const [quantity, setQuantity] = useState(1);
 
@@ -44,7 +42,7 @@ export default function Home() {
 
       {!isConnected ? (
         <button
-          onClick={() => connect({ connector: injected() })}
+          onClick={() => connect({ connector: connectors[0] })}
           style={{
             background: "#E3E5E4",
             color: "#000",
