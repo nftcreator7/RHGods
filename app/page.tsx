@@ -212,4 +212,15 @@ export default function Home() {
                   <img 
                     key={i} 
                     src={img} 
-                    alt={`RHGod ${i}
+                    alt={`RHGod ${i}`} 
+                    style={{ width: "120px", height: "120px", imageRendering: "pixelated", borderRadius: "8px" }} 
+                  />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+    </main>
+  );
+}
