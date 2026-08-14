@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0xdF1122f3dC6BA4cc541A0b3EE3345dba7f227cB5";
-const CORRECT_CHAIN_ID = BigInt(46630);
+const CONTRACT_ADDRESS = "0x0eA744E38092F1B0aEaE5Ef7Bc86E0Dea7435699";
+const CORRECT_CHAIN_ID = BigInt(4663); // Robinhood Chain Mainnet
 const MAX_SUPPLY = 3333;
 
 const ABI = [
@@ -97,7 +97,6 @@ export default function Home() {
       setMinted(after);
       setStatus("Mint Successful!");
 
-      // 민트된 토큰 이미지 불러오기
       const images: string[] = [];
       for (let id = before + 1; id <= after; id++) {
         try {
@@ -133,7 +132,7 @@ export default function Home() {
           marginBottom: "20px",
           fontSize: "14px"
         }}>
-          Wrong network. Please switch to Robinhood Chain Testnet.
+          Wrong network. Please switch to Robinhood Chain Mainnet.
         </div>
       )}
 
