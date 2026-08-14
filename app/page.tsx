@@ -3,7 +3,8 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0xF5e93664D61606b247BDf43449ee2CEcF5a94B11"; // 나중에 실제 주소로 변경
+const CONTRACT_ADDRESS = "0xF5e93664D61606b247BDf43449ee2CEcF5a94B11";
+const CORRECT_CHAIN_ID = 46630n; // Robinhood Chain Testnet
 
 const ABI = [
   "function mint(uint256 quantity) payable",
@@ -14,6 +15,27 @@ export default function Home() {
   const [quantity, setQuantity] = useState(1);
   const [status, setStatus] = useState("");
   const [loading, setLoading] = useState(false);
+  const [wrongNetwork, setWrongNetwork] = useState(false);
+
+  const checkNetwork = async () => {
+    if (typeof window === "undefined" || !(window as any).ethereum) return;
+    try {
+      const provider = new BrowserProvider((window as any).ethereum);
+      const network = await provider.getNetwork();
+      setWrongNetwork(network.chainId !== CORRECT_CHAIN_ID);
+    } catch {
+      setWrongNetwork(true);
+    }
+  };
+
+  useEffect(() => {
+    checkNetwork();
+    if ((window as any).ethereum) {
+      (window as any).ethereum.on("chainChanged", () => {
+        window.location.reload();
+      });
+    }
+  }, []);
 
   const connectWallet = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
@@ -25,6 +47,7 @@ export default function Home() {
       const provider = new BrowserProvider((window as any).ethereum);
       const accounts = await provider.send("eth_requestAccounts", []);
       setAccount(accounts[0]);
+      await checkNetwork();
       setStatus("Wallet connected");
     } catch (err: any) {
       setStatus("Connection failed: " + err.message);
@@ -32,7 +55,7 @@ export default function Home() {
   };
 
   const handleMint = async () => {
-    if (!account) return;
+    if (!account || wrongNetwork) return;
 
     setLoading(true);
     setStatus("Minting...");
@@ -60,6 +83,19 @@ export default function Home() {
     <main style={{ textAlign: "center", padding: "40px 20px", maxWidth: "480px", margin: "0 auto" }}>
       <h1 style={{ fontSize: "32px", marginBottom: "8px" }}>RHGods</h1>
       <p style={{ color: "#888", marginBottom: "40px" }}>Fully On-Chain on Robinhood Chain</p>
+
+      {wrongNetwork && (
+        <div style={{ 
+          background: "#7f1d1d", 
+          color: "#fecaca", 
+          padding: "12px", 
+          borderRadius: "8px", 
+          marginBottom: "20px",
+          fontSize: "14px"
+        }}>
+          Wrong network. Please switch to Robinhood Chain Testnet.
+        </div>
+      )}
 
       {!account ? (
         <button
@@ -105,15 +141,15 @@ export default function Home() {
 
           <button
             onClick={handleMint}
-            disabled={loading}
+            disabled={loading || wrongNetwork}
             style={{
-              background: loading ? "#555" : "#E3E5E4",
+              background: loading || wrongNetwork ? "#555" : "#E3E5E4",
               color: "#000",
               padding: "14px 28px",
               fontSize: "16px",
               borderRadius: "8px",
               border: "none",
-              cursor: loading ? "not-allowed" : "pointer",
+              cursor: loading || wrongNetwork ? "not-allowed" : "pointer",
               fontWeight: "600",
               width: "100%",
               maxWidth: "280px",
