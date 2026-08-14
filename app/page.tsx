@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0x0000000000000000000000000000000000000000"; // 나중에 실제 주소로 변경
+const CONTRACT_ADDRESS = "0xF5e93664D61606b247BDf43449ee2CEcF5a94B11"; // 나중에 실제 주소로 변경
 
 const ABI = [
   "function mint(uint256 quantity) payable",
