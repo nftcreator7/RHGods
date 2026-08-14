@@ -1,7 +1,7 @@
 "use client";
 
 import { useAccount, useConnect, useDisconnect, useWriteContract, useWaitForTransactionReceipt } from "wagmi";
-import { injected } from "wagmi/connectors";
+import { injected } from "wagmi/connectors/injected";
 import { parseEther } from "viem";
 import { useState } from "react";
 
