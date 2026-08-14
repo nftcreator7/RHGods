@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
 const CONTRACT_ADDRESS = "0xF5e93664D61606b247BDf43449ee2CEcF5a94B11";
-const CORRECT_CHAIN_ID = 46630n; // Robinhood Chain Testnet
+const CORRECT_CHAIN_ID = BigInt(46630); // Robinhood Chain Testnet
 
 const ABI = [
   "function mint(uint256 quantity) payable",
