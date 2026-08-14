@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { defineChain } from "viem";
+import { injected } from "wagmi/connectors";
 
 const queryClient = new QueryClient();
 
@@ -20,6 +21,7 @@ const robinhoodTestnet = defineChain({
 
 const config = createConfig({
   chains: [robinhoodTestnet],
+  connectors: [injected()],
   transports: {
     [robinhoodTestnet.id]: http(),
   },
