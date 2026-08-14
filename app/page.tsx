@@ -43,7 +43,7 @@ export default function Home() {
       const contract = new Contract(CONTRACT_ADDRESS, ABI, signer);
 
       const tx = await contract.mint(quantity, {
-        value: parseEther((0.0005 * quantity).toString()),
+        value: parseEther((0.0005 * quantity).toFixed(4)),
       });
 
       setStatus("Transaction sent... waiting for confirmation");
