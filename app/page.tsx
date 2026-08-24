@@ -3,9 +3,9 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0x0eA744E38092F1B0aEaE5Ef7Bc86E0Dea7435699";
-const CORRECT_CHAIN_ID = BigInt(4663); // Robinhood Chain Mainnet
-const MAX_SUPPLY = 3333;
+const CONTRACT_ADDRESS = "0xEFd62a51948AAF45a6983C9D64A172a465238329";
+const CORRECT_CHAIN_ID = BigInt(46630); // Robinhood Chain Testnet
+const MAX_SUPPLY = 5555;
 
 const ABI = [
   "function mint(uint256 quantity) payable",
@@ -56,7 +56,7 @@ export default function Home() {
 
   const connectWallet = async () => {
     if (typeof window === "undefined" || !(window as any).ethereum) {
-      alert("지갑을 설치해주세요");
+      alert("Please install a wallet");
       return;
     }
 
@@ -124,15 +124,17 @@ export default function Home() {
       </p>
 
       {wrongNetwork && (
-        <div style={{ 
-          background: "#7f1d1d", 
-          color: "#fecaca", 
-          padding: "12px", 
-          borderRadius: "8px", 
-          marginBottom: "20px",
-          fontSize: "14px"
-        }}>
-          Wrong network. Please switch to Robinhood Chain Mainnet.
+        <div
+          style={{
+            background: "#7f1d1d",
+            color: "#fecaca",
+            padding: "12px",
+            borderRadius: "8px",
+            marginBottom: "20px",
+            fontSize: "14px",
+          }}
+        >
+          Wrong network. Please switch to Robinhood Chain Testnet.
         </div>
       )}
 
@@ -163,7 +165,7 @@ export default function Home() {
             <input
               type="number"
               min={1}
-              max={10}
+              max={100}
               value={quantity}
               onChange={(e) => setQuantity(Number(e.target.value))}
               style={{
@@ -198,7 +200,12 @@ export default function Home() {
           </button>
 
           {status && (
-            <p style={{ marginTop: "24px", color: status.includes("Successful") ? "#4ade80" : "#aaa" }}>
+            <p
+              style={{
+                marginTop: "24px",
+                color: status.includes("Successful") ? "#4ade80" : "#aaa",
+              }}
+            >
               {status}
             </p>
           )}
@@ -206,13 +213,25 @@ export default function Home() {
           {mintedImages.length > 0 && (
             <div style={{ marginTop: "30px" }}>
               <p style={{ marginBottom: "12px", color: "#aaa" }}>Your new RHGods:</p>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
+              <div
+                style={{
+                  display: "flex",
+                  flexWrap: "wrap",
+                  gap: "12px",
+                  justifyContent: "center",
+                }}
+              >
                 {mintedImages.map((img, i) => (
-                  <img 
-                    key={i} 
-                    src={img} 
-                    alt={`RHGod ${i}`} 
-                    style={{ width: "120px", height: "120px", imageRendering: "pixelated", borderRadius: "8px" }} 
+                  <img
+                    key={i}
+                    src={img}
+                    alt={`RHGod ${i}`}
+                    style={{
+                      width: "120px",
+                      height: "120px",
+                      imageRendering: "pixelated",
+                      borderRadius: "8px",
+                    }}
                   />
                 ))}
               </div>
