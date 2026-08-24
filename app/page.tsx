@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { BrowserProvider, Contract, parseEther } from "ethers";
 
-const CONTRACT_ADDRESS = "0xEFd62a51948AAF45a6983C9D64A172a465238329";
-const CORRECT_CHAIN_ID = BigInt(46630); // Robinhood Chain Testnet
+const CONTRACT_ADDRESS = "0x39fA85D27CcFAA0bEe690C39bb30901E96333391";
+const CORRECT_CHAIN_ID = BigInt(4663); // Robinhood Chain Mainnet
 const MAX_SUPPLY = 5555;
 
 const ABI = [
@@ -134,7 +134,7 @@ export default function Home() {
             fontSize: "14px",
           }}
         >
-          Wrong network. Please switch to Robinhood Chain Testnet.
+          Wrong network. Please switch to Robinhood Chain Mainnet.
         </div>
       )}
 
